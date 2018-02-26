@@ -5,71 +5,123 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
+/**
+ * 
+ * @author nschaffner
+ *
+ */
 @Entity
 @Table(name="Customers")
 public class Customers {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+	/**
+	 * primary key
+	 */
     private int customer_id;
-	//primary key
+	/**
+	 * customer first name
+	 */
 	private String firstname;
-	//customer first name
+	/**
+	 * customer last name
+	 */
 	private String lastname;
-	//customer last name
+	/**
+	 * customer email address
+	 */
 	private String email;
-	//customer email
+	/**
+	 * customer gender
+	 */
 	private String gender;
-	//customer gender
+	/**
+	 * customer username
+	 */
 	private String username;
-	//customer username
 	
+	/**
+	 * getter for customer id
+	 * @return customer id
+	 */
 	public int getCustomer_id() {
-		//getter for customer id
 		return customer_id;
 	}
+	/**
+	 * setter for customer id
+	 * @param customer_id
+	 */
 	public void setCustomer_id(int customer_id) {
-		//setter for customer id
 		this.customer_id = customer_id;
 	}
+	/**
+	 * getter for first name
+	 * @return first name
+	 */
 	public String getFirstname() {
-		//getter for first name
 		return firstname;
 	}
+	/**
+	 * setter for first name
+	 * @param firstname
+	 */
 	public void setFirstname(String firstname) {
-		//setter for first name
 		this.firstname = firstname;
 	}
+	/**
+	 * getter for last name
+	 * @return last name
+	 */
 	public String getLastname() {
-		//getter for last name
 		return lastname;
 	}
+	/**
+	 * setter for last name
+	 * @param lastname
+	 */
 	public void setLastname(String lastname) {
-		//setter for last name
 		this.lastname = lastname;
 	}
+	/**
+	 * getter for email
+	 * @return email address
+	 */
 	public String getEmail() {
-		//getter for email
 		return email;
 	}
+	/**
+	 * setter for email
+	 * @param email
+	 */
 	public void setEmail(String email) {
-		//setter for email
 		this.email = email;
 	}
+	/**
+	 * getter for customer gender
+	 * @return gender
+	 */
 	public String getGender() {
-		//getter for gender
 		return gender;
 	}
+	/**
+	 * setter for gender
+	 * @param gender
+	 */
 	public void setGender(String gender) {
-		//setter for gender
 		this.gender = gender;
 	}
+	/**
+	 * getter for username
+	 * @return username
+	 */
 	public String getUsername() {
-		//getter for username
 		return username;
 	}
+	/**
+	 * setter for username
+	 * @param username
+	 */
 	public void setUsername(String username) {
-		//setter for username
 		this.username = username;
 	}
 	

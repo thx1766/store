@@ -9,41 +9,70 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
+/**
+ * 
+ * @author nschaffner
+ *
+ */
 @Entity
 @Table(name="Carts")
 public class Carts {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+	/**
+	 *primary key 
+	 */
     private int cart_id;
-	//primary key
+	/**
+	 * customers entity
+	 */
 	private Customers customer;
-	//customer entity
 	@OneToMany(cascade=CascadeType.PERSIST)
+	/**
+	 *list of CustomerProducts entities 
+	 */
 	private List<CustomerProducts> cartItems;
-	//list of CustomerProducts entities
+
+	/**
+	 * getter for cart id
+	 * @return cart id
+	 */
 	public int getCart_id() {
-		//getter for cart id
 		return cart_id;
 	}
+	/**
+	 * setter for cart id
+	 * @param cart_id
+	 */
 	public void setCart_id(int cart_id) {
-		//setter for cart id
 		this.cart_id = cart_id;
 	}
+	/**
+	 * getter for customer
+	 * @return customer
+	 */
 	public Customers getCustomer() {
-		//getter for customer
 		return customer;
 	}
+	/**
+	 * setter for customer
+	 * @param customer
+	 */
 	public void setCustomer(Customers customer) {
-		//setter for customer
 		this.customer = customer;
 	}
+	/**
+	 * getter for cartItems
+	 * @return cartItems
+	 */
 	public List<CustomerProducts> getCartItems() {
-		//getter for cartItems
 		return cartItems;
 	}
+	/**
+	 * setter for cart items
+	 * @param cartItems
+	 */
 	public void setCartItems(List<CustomerProducts> cartItems) {
-		//setter for cart items
 		this.cartItems = cartItems;
 	}
 

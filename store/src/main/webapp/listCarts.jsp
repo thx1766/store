@@ -1,13 +1,12 @@
 <html>
 <body>
-<form enctype="application/x-www-form-urlencoded" method="GET" action="/store/webapi/carts/list">
+<form enctype="application/x-www-form-urlencoded" method="GET" action="/store/listCartsRest.jsp">
+<!-- <form enctype="application/x-www-form-urlencoded" method="GET" action="/store/webapi/carts/list"> -->
 List Carts:
 <button type="submit" >submit</button>
 </form>
 <br>
-<form action="/store/administrators.jsp">
-    <input type="submit" value="Admin Menu" />
-</form>
+<input type="button" onclick="location.href='/store/administrators.jsp';" value="Admin Menu" />
 </body>
 
 </html>

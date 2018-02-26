@@ -1,6 +1,7 @@
 <html>
 <body>
-<form enctype="application/x-www-form-urlencoded" method="POST" action="/store/webapi/products/list">
+<form enctype="application/x-www-form-urlencoded" method="POST" action="/store/listProductsRest.jsp">
+<!-- <form enctype="application/x-www-form-urlencoded" method="POST" action="/store/webapi/products/list"> -->
 List Products
 <br><br>
 Provide a valid userid number to associate cart actions.
@@ -10,9 +11,7 @@ Userid:<input type="text" name="userid" >
 <button type="submit" >submit</button>
 </form>
 <br>
-<form action="/store/administrators.jsp">
-    <input type="submit" value="Admin Menu" />
-</form>
+<input type="button" onclick="location.href='/store/administrators.jsp';" value="Admin Menu" />
 </body>
 
 </html>

@@ -14,47 +14,113 @@ import org.slf4j.LoggerFactory;
 
 import model.Customers;
 
+
+/**
+ * 
+ * @author nschaffner
+ *
+ */
 public class LoginService {
-	
+	/**
+	 *persistence unit name for the database connection 
+	 */
 	String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
-	//persistence unit name for the database connection
+	/**
+	 *factory for creating the entity manager 
+	 */
     EntityManagerFactory factory;
-    //factory for creating the entity manager
+    /**
+     *setup the logger for logging LoginService class methods 
+     */
     static Logger logger = LoggerFactory.getLogger(LoginService.class);
-    //setup the logger for logging LoginService class methods
     
+    /**
+     * service method backing rest endpoint for user login
+     * @param usernamein
+     * @return return the user's userid
+     */
 	public int login(String usernamein) {
+		/**
+		 *instantiate the factory for creating an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate the factory for creating an entity manager
+		/**
+		 * create an entity manger
+		 */
 		 EntityManager em = factory.createEntityManager();
-		 //create an entity manger
+		 /**
+		  *begin the transaction 
+		  */
 		 em.getTransaction().begin();
-		 //begin the transaction
+		 /**
+		  * find the user in the database by querying Customers table with the supplied username
+		  */
 		  TypedQuery<Customers> q = em.createQuery("select t from Customers t where t.username=?1",Customers.class).setParameter(1, usernamein).setMaxResults(1);
-		  //find the user in the database by querying Customers table with the supplied username
+		 /**
+		  *list of customers returned from the query 
+		  */
 		 List<Customers> myCustomers = q.getResultList();
-		 //list of customers returned from the query
+		 /**
+		  * if there are no results this is an error condition
+		  */
 		 if(myCustomers.size()==0){
-			 //if there are no results this is an error condition
+			 /**
+			  * return userid -1 to signal error
+			  */
 			 return -1;
-			 //return userid -1 to signal error
 		 }
+		 /**
+		  * get the customer from the list
+		  */
 		 Customers myCustomer = myCustomers.get(0);
-		 //get the customer from the list
+		 /**
+		  * get the customer's username
+		  */
 		 String username = myCustomer.getUsername();
-		 //get the customer's username
+		 /**
+		  * get the customer's customer id number
+		  */
 		 int userid = myCustomer.getCustomer_id();
-		 //get the customer's customer id number
+		 /**
+		  * log that a user logged in
+		  */
 		 logger.info("user: "+userid+"(username:"+username+") logged in");
-		 //log that a user logged in
+		 
+/////
+			//String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
+			//EntityManagerFactory factory;
+			//factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+			//EntityManager em = factory.createEntityManager();
+			// em.getTransaction().begin();
+			//  TypedQuery<Customers> q = em.createQuery("select t from Customers t where t.username=?1",Customers.class).setParameter(1, name).setMaxResults(1);
+			// List<Customers> myCustomers = q.getResultList();
+			// int userpersistedid=-1;
+			// if(myCustomers.size()==0){
+			//	 userpersistedid =  -1;
+			// }
+			// try{
+			//	 Customers myCustomer = myCustomers.get(0);
+			//	 String username = myCustomer.getUsername();
+			//	 userpersistedid = myCustomer.getCustomer_id();
+			// }catch(Exception e){
+			//	 session.setAttribute( "userid", -1 );
+			// }
+/////
 		return userid;
-		//return the user's userid
 	}
 	
+	/**
+	 * service method backing rest call for user logout
+	 */
 	public void logout(){
 		//implemented in UI not service
 		logger.info("user logged out");
 		//log that a user logged out
+	}
+
+	public int userid(String username) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 	

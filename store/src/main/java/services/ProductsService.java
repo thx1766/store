@@ -13,157 +13,375 @@ import org.slf4j.LoggerFactory;
 
 import model.Carts;
 import model.CustomerProducts;
+import model.Customers;
 import model.Products;
 
+/**
+ * 
+ * @author nschaffner
+ *
+ */
+
 public class ProductsService {
+	/**
+	 *persistence unit name for connecting to the database 
+	 */
 	String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
-	//persistence unit name for connecting to the database
+	/**
+	 *factory for creating entity managers 
+	 */
     EntityManagerFactory factory;
-    //factory for creating entity managers
+    /**
+     *logger set to log messages for methods in ProductsService class 
+     */
     static Logger logger = LoggerFactory.getLogger(ProductsService.class);
-    //logger set to log messages for methods in ProductsService class
-    
+  
+    /**
+     * service method backing rest endpoint for adding a product
+     * @param productName
+     * @param price
+     * @param quantity
+     * @return return the full string containing product info and link
+     */
 	public String addProduct(String productName, double price, int quantity) {
+		/**
+		 *instantiate the factory for getting an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate the factory for getting an entity manager
+		/**
+		 *create an entity manager 
+		 */
 	    EntityManager em = factory.createEntityManager();
-	    //create an entity manager
+	    /**
+	     *begin the transaction 
+	     */
 	    em.getTransaction().begin();
-	    //begin the transaction
+	    /**
+	     *create a new Products entity 
+	     */
 	    Products newProduct = new Products();
-	    //create a new Products entity
+	    /**
+	     *set the product name 
+	     */
 	   newProduct.setProductName(productName);
-	   //set the product name
+	   /**
+	    *set the product price 
+	    */
 	   newProduct.setPrice(price);
-	   //set the product price
+	   /**
+	    *set the product quantity 
+	    */
 	   newProduct.setQuantity(quantity);
-	   //set the product quantity
+	   /**
+	    * persist the new product
+	    */
 	    em.persist(newProduct);
-	    //persist the new product
+	    /**
+	     *commit the transaction 
+	     */
 	    em.getTransaction().commit();
-	    //commit the transaction
+	    /**
+	     *close the entity manager 
+	     */
 	    em.close();
-	    //close the entity manager
+	    /**
+	     *log the product that was added 
+	     */
 	    logger.info("product: "+productName+" added with price: "+price+" and quantity: "+quantity);
-	    //log the prodcut that was added
-	    String retval="<html><body>";
-	    //set html envelope
-	    retval+=newProduct.toString();
-	    //set string representation of new product
-	    retval+="<BR><a href='/store/addProduct.jsp'>Return to Add Products</a></body></html>";
-	    //close the html envelope and set a link to add more products
-	return retval;
-	//return the full string containing product info and link
+	    
+	return newProduct.toString();
 	
 	}
 
 	@SuppressWarnings("unchecked")
+	/**
+	 * service method backing rest endpoint to list products
+	 * @return return the list of products
+	 */
 	public List<Products> listProducts() {
+		/**
+		 *instantiate the factory for creating entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate the factory for creating entity manager
+		/**
+		 *create an entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create an entity manager
+		/**
+		 *query to search the database for all products 
+		 */
 		Query q = em.createQuery("select t from Products t");
-		//query to search the database for all products
+		/**
+		 *set a list of products from the query 
+		 */
 		List<Products> todoList = q.getResultList();
-		//set a list of products from the query
+		/**
+		 *close the entity manager 
+		 */
 		em.close();
-		//close the entity manager
+		/**
+		 *log that products were listed 
+		 */
 		logger.info("products listed");
-		//log that products were listed
 		return todoList;
-		//return the list of products
 	}
 
-	public Object UpdateProduct(int product_id, String productName, double price, int quantity) {
+	/**
+	 * service method backing rest endpoint to update a product
+	 * @param product_id
+	 * @param productName
+	 * @param price
+	 * @param quantity
+	 * @return return a string representation of the updated product
+	 */
+	public String updateProduct(int product_id, String productName, double price, int quantity) {
+		/**
+		 *instantiate the factory to get an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate the factory to get an entity manager
+		/**
+		 *create an entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create an entity manager
+		/**
+		 *get a list of products corresponding to the product id specified 
+		 */
 		List<Products> test = em.createQuery("select t from Products t where t.product_id = ?1", Products.class).setParameter(1, product_id).getResultList();
-		//get a list of products corresponding to the product id specified
+		/**
+		 * error - should return 1 result
+		 */
 		if(test.size()!=1){
-			//error - should return 1 result
+			/**
+			 *close the entity manager 
+			 */
 			em.close();
-			//close the entity manager
+			/**
+			 * log the error
+			 */
 			logger.error("error updating product with id: "+product_id);
-			return null;
-			//error condition
+			/**
+			 * error condition
+			 */
+			return null;			
 		}
+		/**
+		 * list is comprised on one element
+		 */
 		else
 		{
-			//list is comprised on one element
+			/**
+			 *begin transaction 
+			 */
 			em.getTransaction().begin();
-			//begin transaction
+			/**
+			 *get product from list 
+			 */
 			Products newProducts = test.get(0);
-			//get product from list
+			/**
+			 *set updated price 
+			 */
 			newProducts.setPrice(price);
-			//set updated price
+			/**
+			 *set updated name 
+			 */
 			newProducts.setProductName(productName);
-			//set updated name
+			/**
+			 *set updated quantity 
+			 */
 			newProducts.setQuantity(quantity);
-			//set updated quantity
+			/**
+			 *persist the modified product 
+			 */
 			em.persist(newProducts);
-			//persist the modified product
+			/**
+			 *commit the transaction 
+			 */
 			em.getTransaction().commit();
-			//commit the transaction
+			/**
+			 *close the entity manager 
+			 */
 			em.close();
-			//close the entity manager
+			/**
+			 *log that the product was updated 
+			 */
 			logger.info("product with id: "+product_id+" updated");
-			//log that the product was updated
 			return newProducts.toString();
-			//return a string representation of the updated product
 		}
 	}
 
-	public Object DeleteProduct(int id) {
-		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate a factory to get an entity manager
-		EntityManager em = factory.createEntityManager();
-		//create an entity manager
+	/**
+	 * service method backing rest endpoint to delete a product from inventory
+	 * @param id
+	 * @return return the id of the deleted product
+	 */
+	public String deleteProductSQL(int id) {
 		
-		//check all carts for product and remove item from carts to proceed
+		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+		
+		EntityManager em = factory.createEntityManager();
+		
+		List<Object[]> list = em.createQuery("Select c,ccp from Carts c, CustomerProducts cp where c.cart_id=cp.cart_id").getResultList();
+		String returnstring="";
+		for(Object o[]: list) {
+			Carts c = (Carts) o[0];
+			CustomerProducts ccp =(CustomerProducts) o[1];
+			returnstring+="\n cart: "+c.toString()+"\n customerproducts "+ccp.toString();
+		}
+		return returnstring;
+		
+	}
+	public String deleteProduct(int id) {
+		/**
+		 *instantiate a factory to get an entity manager 
+		 */
+		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+		/**
+		 *create an entity manager 
+		 */
+		EntityManager em = factory.createEntityManager();
+		/**
+		 *check all carts for product and remove item from carts to proceed 
+		 */
 		List<Carts> allcarts = em.createQuery("select t from Carts t",Carts.class).getResultList();
+		/**
+		 * for each cart
+		 */
 		for(Carts cartindex: allcarts) {
-			//for each cart
+			/**
+			 * get products list
+			 */
 			List<CustomerProducts> productlist=cartindex.getCartItems();
-			//get products list
 			List<CustomerProducts> temp=new ArrayList<CustomerProducts>();
+				/**
+				 * For each cart item
+				 */
 				for(CustomerProducts productindex: productlist) {
-					//for each cart item
-					
+					/**
+					 * customer cart item matches id of product to be deleted
+					 */
 					if(productindex.getProduct_id()==id) {
-						//customer cart item matches id of product to be deleted
+						//add to remove list
 						temp.add(productindex);
-						//remove from list
 					}
 				}
+				/**
+				 * remove items found in search
+				 */
 				productlist.removeAll(temp);
-				//remove items found in search
+				/**
+				 *set list to new list missing targeted product 
+				 */
 				cartindex.setCartItems(productlist);
-				//set list to new list missing targeted product
-			
 		}
-		//for each cart
-			//check if product id matches id to be deleted
-			//if id matches remove product from cart
-		
-		
-		
+		/**
+		 *get the product with the specified id 
+		 */
 		Products result =em.createQuery("select t from Products t where t.product_id = ?1", Products.class).setParameter(1, id).getSingleResult();
-		//get the product with the specified id
+		/**
+		 *begin transaction 
+		 */
 		em.getTransaction().begin();
-		//begin transaction
+		/**
+		 *remove the product matching the query 
+		 */
 		em.remove(result);
-		//remove the product matching the query
+		/**
+		 * commit the transaction
+		 */
 		em.getTransaction().commit();
-		//commit the transaction
+		/**
+		 * close the entity manager
+		 */
 		em.close();
-		//close the entity manager
+		/**
+		 *log that the product was deleted 
+		 */
 		logger.info("product with product id: "+id+" deleted");
-		//log that the product was deleted
 		return "deleted"+id;
-		//return the id of the deleted product
 	}
 
+	public int getCartFromUserid(int userid) {
+		String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
+		EntityManagerFactory factory;
+		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+		EntityManager em = factory.createEntityManager();
+		Query q = em.createQuery("select t from Customers t where t.customer_id = ?1",Customers.class).setParameter(1, userid);
+		List<Customers> customerlist =  q.getResultList();
+		Customers mycustomer;
+		try{
+			mycustomer = customerlist.get(0);
+		}catch(IndexOutOfBoundsException e) {
+			return -1;
+		}
+		Query q2 = em.createQuery("select t from Carts t where t.customer=?1",Carts.class).setParameter(1, mycustomer);
+		List<Carts> cartlist = q2.getResultList();
+		int mycartid =0;
+		try{
+			Carts mycart = cartlist.get(0);
+			mycartid = mycart.getCart_id();
+		}catch(Exception e){
+			mycartid=-1;
+		}
+		return mycartid;
+	}
+	
+	public int test(int userid) {
+		/**
+		 *persistence unit name for accessing the database 
+		 */
+		String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
+		/**
+		 *factory for creating an entity manager 
+		 */
+	    EntityManagerFactory factory;
+	    /**
+	     *instantiate factory for creating an entity manager 
+	     */
+	    factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+	    /**
+	     *create the entity manager 
+	     */
+	    EntityManager em = factory.createEntityManager();
+	    /**
+	     *query to get customer with specified id 
+	     */
+	    Query q = em.createQuery("select t from Customers t where t.customer_id = ?1").setParameter(1, userid);
+	    /**
+	     *list of one customer corresponding to specified id 
+	     */
+	    List<Customers> customerlist = q.getResultList();
+	    /**
+	     *customer extracted from list 
+	     */
+	    Customers mycustomer = customerlist.get(0);
+	    /**
+	     *query to get cart corresponding to customer 
+	     */
+	    Query q2 = em.createQuery("select t from Carts t where t.customer=?1").setParameter(1, mycustomer);
+	    /**
+	     *list of carts from query 
+	     */
+	    List<Carts> cartlist = q2.getResultList();
+	    /**
+	     *cart entity 
+	     */
+
+	    Carts mycart;
+	    try {
+	    	/**
+	    	 * try to get the first element
+	    	 */
+	    	mycart = cartlist.get(0);
+	    }catch(Exception e) {
+	    	/**
+	    	 * the cart does not exist, provide a link to create one
+	    	 */
+	    	return -1;//"<html><body>You must create a cart first!<br><a href='/store/addCart.jsp'>Create a cart</a></body></html>";
+	    }
+	    /**
+	     *cart id from query 
+	     */
+	   // int mycartid = mycart.getCart_id();
+		return userid;
+	}
 }

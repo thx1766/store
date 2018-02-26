@@ -15,368 +15,776 @@ import model.CustomerProducts;
 import model.Customers;
 import model.Products;
 
+/**
+ * 
+ * @author nschaffner
+ *
+ */
+
 public class CartsService {
-	
+	/**
+	 *persistance unit name required for entity management 
+	 */
 	String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
-	//persistance unit name required for entity management
+	/**
+	 *factory for creating entity managers
+	 */
+	/* link to log to a file
+	 * https://examples.javacodegeeks.com/core-java/logback-file-appender-example 
+	 */
     EntityManagerFactory factory;
-    //factory for creating entity managers
+    /**
+     *logger set to this class for logging CartsService methods 
+     */
     static Logger logger = LoggerFactory.getLogger(CartsService.class);
-    //logger set to this class for logging CartsService methods
     
+    /**
+     * Service method backing REST endpoint to add a cart to the database
+     * 
+     * @param id userid to associate cart to
+     * @return id of created cart
+     */
 	public int addCart(int id) {
+		/**
+		 *instantiate a factory to get an entity manager from 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate a factory to get an entity manager from
+		/**
+		 *create an entity manager 
+		 */
 	    EntityManager em = factory.createEntityManager();
-	    //create an entity manager
+	    /**
+	     * begin the transaction
+	     */
 	    em.getTransaction().begin();
-	    //begin the transation
+	    /**
+	     * create a new carts object
+	     */
 	    Carts newCart = new Carts();
-	    //create a new carts object
+	    /**
+	     *create a new customers object 
+	     */
 	    Customers newCustomer=new Customers();
-	    //create a new customers object
+	    /**
+	     *set the customer id 
+	     */
 	    newCustomer.setCustomer_id(id);
-	    //set the customer id
+	    /**
+	     *set the customer to the cart 
+	     */
 	    newCart.setCustomer(newCustomer);
-	    //set the customer to the cart
+	    /**
+	     *persist the cart in the database 
+	     */
 	    em.persist(newCart);
-	    //persist the cart in the database
+	    /**
+	     * commit the transaction
+	     */
 	    em.getTransaction().commit();
-	    //commit transation
+	    /**
+	     * close the entity manager
+	     */
 	    em.close();
-	    //close entity manager
+	    /**
+	     *log that a new cart was created 
+	     */
 	    logger.info("cart "+newCart.getCart_id()+" created for customerid: "+id);
-	    //log that a new cart was created
 	return newCart.getCart_id();
 	}
 
 	@SuppressWarnings("unchecked")
+	/**
+	 * Service method backing REST endpoint to list carts
+	 * @return
+	 */
 	public List<Carts> listCarts() {
+		/**
+		 *instantiate a new factory to get an entity manger from 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate a new factory to get an entity manger from
+		/**
+		 *create a new entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create a new entity manager
+		/**
+		 *create  query to get the carts from the database 
+		 */
 		Query q = em.createQuery("select t from Carts t");
-		//create  query to get the carts from the database
+		/**
+		 *get a list of carts from the query 
+		 */
 		List<Carts> todoList = q.getResultList();
-		//get a list of carts from the query
+		/**
+		 * close the entity manager
+		 */
 		em.close();
-		//close the entity manager
+		/**
+		 * log that carts were listed
+		 */
 		logger.info("carts listed");
-		//log that carts were listed
 		return todoList;
 	}
 	
 	@SuppressWarnings("unchecked")
+	/**
+	 * Service backing REST endpoint to add an item to a cart
+	 * @param cart_id cart id from rest endpoint method
+	 * @param product_id product id from rest endpoint method
+	 * @param quantity quantity from rest endpoint method
+	 * @return
+	 */
 	public String addCartItem(int cart_id, int product_id, int quantity) {
+		/**
+		 *instantiate a factory to get an entity manager from 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate a factory to get an entity manager from
+		/**
+		 *create an entity manager 
+		 */
 	    EntityManager em = factory.createEntityManager();
-	    //create an entity manager
+	    /**
+	     *begin the transaction 
+	     */
 	    em.getTransaction().begin();
-	    //begin the transaction
+	    /**
+	     *query to get cart with specified id from the database 
+	     */
 	    Query q = em.createQuery("select t from Carts t where t.cart_id = ?1").setParameter(1, cart_id);
-	    //query to get cart with specified id from the database
+	    /**
+	     *create a carts object 
+	     */
 	    Carts myCart;
-	    //create a carts object 
+	    /**
+	     *get a list of carts from the query 
+	     */
 	    List<Carts> myList =  q.getResultList();
-	    //get a list of carts from the query
+	    /**
+	     * list size should be 1
+	     */
 	    if (myList.size()==1){
-	    	//list size should be 1
+	    	/**
+	    	 *get the first cart from the query 
+	    	 */
 	    	myCart = myList.get(0);
-	    	//get the first cart from the query
 	    	}
+	    /**
+	     * no results
+	     */
 	    else{
-	    	//no results
+	    	/**
+	    	 * error condition
+	    	 */
 	    	return null;
-	    	//error condition
 	    	}
+	    /**
+	     *create a CustomerProducts object to hold customer's purchase 
+	     */
 	    CustomerProducts myProduct = new CustomerProducts();
-	    //create a CustomerProducts object to hold customer's purchase
+	    /**
+	     *create a query to get the product information from the database 
+	     */
 	    Query q2 = em.createQuery("select t from Products t where t.product_id=?1",Products.class).setParameter(1, product_id);
-	    //create a query to get the product information from the database
+	    /**
+	     *get the result from the query 
+	     */
 	    Products selectedProduct = (Products) q2.getResultList().get(0);
-	    //get the result from the query
+	    /**
+	     *set name of product for customer inventory 
+	     */
 	    myProduct.setProductName(selectedProduct.getProductName());
-	    //set name of product for customer inventory
+	    /**
+	     *set price of product for customer inventory 
+	     */
 	    myProduct.setPrice(selectedProduct.getPrice());
-	    //set price of product for customer inventory
+	    /**
+	     *set product id for customer inventory 
+	     */
 	    myProduct.setProduct_id(product_id);
-	    //set product id for customer inventory
+	    /**
+	     *set quantity for customer inventory 
+	     */
 	    myProduct.setQuantity(quantity);
-	    //set quantity for customer inventory
+	    /**
+	     *calculate new inventory quantity 
+	     */
 	    int newInvQuantity = selectedProduct.getQuantity()-quantity;
-	    //calculate new inventory quantity
+	    /**
+	     * request greater than number of products in inventory
+	     */
 	    if(newInvQuantity < 0) {
 	    	return "Quantity would set inventory negative. Select a lower value.";
 	    }
+	    /**
+	     *query to update inventory quantity 
+	     */
 	    Query q3 = em.createQuery("UPDATE Products t SET t.quantity = ?1 where t.product_id=?2").setParameter(1, newInvQuantity).setParameter(2, product_id);
-	    //query to update inventory quantity
+	    /**
+	     *execute the update 
+	     */
 	    int rowcount = q3.executeUpdate();
-	    //execute the update
+	    /**
+	     *log the change in inventory 
+	     */
 	    logger.info("product: "+product_id+"updated to inventory quantity: "+newInvQuantity+" rowcount from query:"+rowcount);
-	    //log the change in inventory
+	    /**
+	     *get a list of old cart items to modify quantity is item is already in cart 
+	     */
 	    List<CustomerProducts> oldCart = myCart.getCartItems();
-	    //get a list of old cart items to modify qiantity is item is already in cart
+	    /**
+	     *check if cart already contains the item 
+	     */
 	    boolean contained=false;
-	    //check if cart already contains the item
+	    /**
+	     * iterate over cart items
+	     */
 	    for(CustomerProducts thisProduct : oldCart){
+	    	/**
+	    	 * find a match for product id already in cart matching item to be added
+	    	 */
 		   if(thisProduct.getProduct_id()==product_id){
-			   //find a match for product id already in cart matching item to be added
+			   /**
+			    *calculate the new quantity 
+			    */
 			   int newQuantity = quantity+thisProduct.getQuantity();
-			   //calculate the new quantity
+			   /**
+			    *sets the updated quantity 
+			    */
 			   thisProduct.setQuantity(newQuantity);
-			   //sets the updated quantity
+			   /**
+			    *sets flag to true to represent item already in customer's cart 
+			    */
 			   contained=true;
-			   //sets flag to true to represent item already in customer's cart
 		   }
 	   }   
+	    /**
+	     * product is not already in cart
+	     */
 	   if(!contained){
-		   //product is not already in cart
+		   /**
+		    *log info for product added to cart 
+		    */
 		   logger.info("product: "+product_id+" not already in cart: "+cart_id+" with quantity:"+myProduct.getQuantity());
-		   //log info for product added to cart
+		   /**
+		    *add new product to shopping cart 
+		    */
 		   oldCart.add(myProduct);
-		   //add new product to shopping cart
 	   }
+	   /**
+	    *set cart items 
+	    */
 	   myCart.setCartItems(oldCart);
-	   //set cart items
+	   /**
+	    *persist modified cart in database 
+	    */
 	   em.persist(myCart);
-	   //persist modified cart in database
+	   /**
+	    * commit transaction
+	    */
 	   em.getTransaction().commit();
-	   //commit transaction
+	   /**
+	    * close entity manager
+	    */
 	   em.close();
-	   //close entity manager
+	   /**
+	    * log item added to cart
+	    */
 	   logger.info("item: "+product_id+" added to cart: "+cart_id+" with quantity: "+quantity);
-	   //log item added to cart
-	   return "Cart item added successfully:<br>"+myCart.toString();
-	   //return data for new cart
+	   /**
+	    * return data for new cart
+	    */
+	   return "Cart item added successfully: "+myCart.toString();
 	}
 	
 	@SuppressWarnings("unchecked")
+	/**
+	 * Service backing rest endpoint to list contents of a cart
+	 * @param cartid id of cart from rest endpoint method
+	 * @return return the linked list of products in the specified cart
+	 */
 	public List<CustomerProducts> listCartContents(int cartid){
+		/**
+		 *instantiate a factory to get the entity manager from 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate a factory to get the entity manager from
+		/**
+		 *create an entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create an entity manager
+		/**
+		 *query to get cart with specified id 
+		 */
 		Query q = em.createQuery("select t from Carts t where t.cart_id = ?1").setParameter(1,cartid);
-		//query to get cart with specified id
+		/**
+		 *set a list from the query results 
+		 */
 		List<Carts> todoList = q.getResultList();
-		//set a list from the query results
+		/**
+		 *create a list of products for user inventory 
+		 */
 		List<CustomerProducts> productsList;
-		//create a list of products for user inventory
+		/**
+		 * should have 1 item returned
+		 */
 		if(todoList.size()==1){
-			//should have 1 item returned
+			/**
+			 *get products list from query results 
+			 */
 			productsList = todoList.get(0).getCartItems();
-			//get products list from query results
 			}
+		/**
+		 * list size is not 1
+		 */
 		else{
-			//list size is not 1
+			/**
+			 * error condition
+			 */
 			return null;
-			//error condition
 			}
+		/**
+		 *close the entity manager 
+		 */
 		em.close();
-		//close the entity manager
+		/**
+		 *log that cart contents were listed 
+		 */
 		logger.info("cart contents listed for cartid: "+cartid);
-		//log that cart contents were listed
 		return productsList;
-		//return the linked list of products in the specified cart
 	}
 	
 	@SuppressWarnings("unchecked")
+	/**
+	 * Service backing rest endpoint to delete an item from a cart
+	 * @param cart_id id of the cart from rest endpoint
+	 * @param product_id id of product from the rest endpoint
+	 * @return returns a string representation of modified cart
+	 */
 	public String deleteCartItem(int cart_id, int product_id) {
+		/**
+		 *instantiate the factory to get an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate the factory to get an entity manager
+		/**
+		 *create an entity manager 
+		 */
 	    EntityManager em = factory.createEntityManager();
-	    //create an entity manager
+	    /**
+	     *begin the database transaction 
+	     */
 	    em.getTransaction().begin();
-	    //begin the database transaction
+	    /**
+	     *query to find the selected cart in the database 
+	     */
 	    Query q = em.createQuery("select t from Carts t where t.cart_id = ?1").setParameter(1, cart_id);
-	    //qurty to find the selected cart in the database
+	    /**
+	     *create a carts object 
+	     */
 	    Carts myCart;
-	    //create a carts object
+	    /**
+	     *create a list of carts from the query result 
+	     */
 	    List<Carts> myList =  q.getResultList();
-	    //create a list of carts from the query result
+	    /**
+	     * query returned 1 item
+	     */
 	    if (myList.size()==1){
-	    	//query returned 1 item
+	    	/**
+	    	 *set cart to retrieved cart from database 
+	    	 */
 	    	myCart = myList.get(0);
-	    	//set cart to retrieved cart from database
 	    	}
+	    /**
+	     * query did not return 1 result
+	     */
 	    else{
-	    	//query did not return 1 result
+	    	/**
+	    	 * error condition
+	    	 */
 	    	return null;
-	    	//error condition
 	    	}
+	    /**
+	     *create a customersproduct object 
+	     */
 	    CustomerProducts myProduct=null;
-	    //create a customersproduct object 
+	    /**
+	     *get a list of items from the cart selected in the database 
+	     */
 	    List<CustomerProducts> oldCart = myCart.getCartItems();
-	    //get a list of items from the cart selected in the database
+	    /**
+	     * iterate through cart items to find product of interest
+	     */
 	    for(CustomerProducts myProductList : oldCart){
-	    	//iterate through cart items to find product of interest
+	    	/**
+	    	 * product id matches that to be deleted
+	    	 */
 		   if(myProductList.getProduct_id()==product_id){
-			   //product id matches that to be deleted
+			   /**
+			    *set product to list 
+			    */
 			   myProduct = myProductList;
-			   //set product to list
 			   }
 	    	}
+	    /**
+	     *remove item from the cart 
+	     */
 	  oldCart.remove(myProduct);
-	  //remove item from the cart
+	  /**
+	   * get quantity
+	   */
 	  int quantity = myProduct.getQuantity();
+	  /**
+	   * query to get products entity matching target product id
+	   */
 	  Query q2 = em.createQuery("SELECT t FROM Products t where t.product_id=?1",Products.class).setParameter(1,product_id);
+	  /**
+	   * list of products to modofy quantity
+	   */
 	  List<Products> prodListForQuantity = q2.getResultList();
+	  /**
+	   * product to change quantity of
+	   */
 	  Products prodForQuantity = prodListForQuantity.get(0);
+	  /**
+	   * calculate new inventory quantity
+	   */
 	  int newInvQuantity = prodForQuantity.getQuantity()+quantity;
+	  /**
+	   * query to update product quantity in inventory
+	   */
 	  Query q3 = em.createQuery("UPDATE Products t SET t.quantity = ?1 where t.product_id=?2").setParameter(1,newInvQuantity).setParameter(2,product_id);
 	  @SuppressWarnings("unused")
+	  /**
+	   * run the update query, rowcount is not used
+	   */
 	  int rowcount = q3.executeUpdate();
+	  /**
+	   *set cart items to modified cart contents 
+	   */
 	  myCart.setCartItems(oldCart);
-	  //set cart items to modified cart contents
+	  /**
+	   *persist the change in the database 
+	   */
 	  em.persist(myCart);
-	  //persist the change in the database
+	  /**
+	   *commit the transaction 
+	   */
 	  em.getTransaction().commit();
-	  //commit the transaction
+	  /**
+	   *close the entity manger 
+	   */
 	  em.close();
-	  //close the entity manger
+	  /**
+	   *log that the item was deleted 
+	   */
 	  logger.info("item with itemid:"+product_id+" deleted from cart with cartid: "+cart_id);
-	  //log that the item was deleted
+	  /**
+	   *return a string representation of the modified cart 
+	   */
 	  return myCart.toString();
-	  //return a string representation of the modified cart
 	}
 	
-	public Object UpdateCart(int cartid, int customerid) {
+	/**
+	 * Service backing rest method to update cart
+	 * @param cartid cart id of interest
+	 * @param customerid new customer id to associate cart to
+	 * @return return string representation of updated cart 
+	 */
+	public String UpdateCart(int cartid, int customerid) {
+		/**
+		 * instantiate a factory to get an entity manager
+		 */
 			factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-			//instantiate a factory to get an entity manager
+			/**
+			 *create an entity manager 
+			 */
 			EntityManager em = factory.createEntityManager();
-			//create an entity manager
+			/**
+			 *get the cart to be updated from the database 
+			 */
 			List<Carts> test = em.createQuery("select t from Carts t where t.cart_id = ?1", Carts.class).setParameter(1, cartid).getResultList();
-			//get the cart to be updated from the database
+			/**
+			 * error to get non 1 result
+			 */
 			if(test.size()!=1){
-				//error to get non 1 result
+				/**
+				 *close entity manager 
+				 */
 				em.close();
-				//close entity manager
+				/**
+				 *log transaction failure 
+				 */
 				logger.error("update cart query failed");
-				//log transaction failure
+				/**
+				 * error condition
+				 */
 				return null;
-				//error condition
 			}
+			/**
+			 * list size is 1 as expected
+			 */
 			else{
-				//list size is 1 as expected
+				/**
+				 *begin transaction 
+				 */
 				em.getTransaction().begin();
-				//begin transaction
+				/**
+				 *get cart from result list 
+				 */
 				Carts newCart = test.get(0);
-				//get cart from result list
+				/**
+				 * set cart it
+				 */
 				newCart.setCart_id(cartid);
-				//set cart id
+				/**
+				 * set customer
+				 */
 				newCart.setCustomer(new Customers());
-				//set customer
+				/**
+				 *persist the change to the database 
+				 */
 				em.persist(newCart);
-				//persist the change to the database
+				/**
+				 *commit the transaction 
+				 */
 				em.getTransaction().commit();
-				//commit the transaction
+				/**
+				 *close the entity manager 
+				 */
 				em.close();
-				//close the entity manager
+				/**
+				 *log cart info change 
+				 */
 				logger.info("cart with cartid: "+cartid+" updated");
-				//log cart info change
+
 				return newCart.toString();
-				//return string representation of updated cart
 			}
 		}
-	
+	/**
+	 * Service method backing rest endpoint to update a cart item
+	 * @param cartid cart id from rest endpoint
+	 * @param productid product id from rest endpoint
+	 * @param quantity from rest endpoint
+	 * @return return a string representation of the new cart
+	 */
 	public String UpdateCartItem(int cartid, int productid, int quantity){
+		/**
+		 *instantiate factory to get an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate factory to get an entity manager
+		/**
+		 *create an entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create an entity manager
+		/**
+		 *get list of cart from query on cart id 
+		 */
 		List<Carts> test = em.createQuery("select t from Carts t where t.cart_id = ?1 ", Carts.class).setParameter(1, cartid).getResultList();
-		//get list of cart from query on cart id
+		/**
+		 * error size should be 1
+		 */
 		if(test.size()!=1){
-			//error size should be 1
+			/**
+			 *close the entity manager 
+			 */
 			em.close();
-			//close the entity manager
+			/**
+			 *log the error 
+			 */
 			logger.error("error updating cart item: query response size not 1");
-			//log the error
+			/**
+			 * error condition
+			 */
 			return null;
-			//error condition
 		}
+		/**
+		 * list size is 1
+		 */
 		else
 		{
-			//list size is 1
+			/**
+			 *begin transaction 
+			 */
 			em.getTransaction().begin();
-			//begin transaction
+			/**
+			 *new cart object from list 
+			 */
 			Carts newItem = test.get(0);
-			//new cart object from list
+			/**
+			 *get cart items in existing list 
+			 */
 			List<CustomerProducts> oldList = newItem.getCartItems();
-			//get cart items in existing list
+			/**
+			 * iterate through cart items
+			 */
 			for(CustomerProducts item : oldList){
-				//iterate through cart items
+				/**
+				 * product matching specified id in list
+				 */
 				if(item.getProduct_id()==productid){
-					//product matching specified id in list
+					/**
+					 *get quantity before update 
+					 */
 					int oldQuantity=item.getQuantity();
-					//get quantity before update
+					/**
+					 *calculate difference in quantity from old value 
+					 */
 					int difference = oldQuantity-quantity;
-					//calculate difference in quantity from old value
+					/**
+					 *get product from database 
+					 */
 					Query q1=em.createQuery("select t from Products t where t.product_id = ?1").setParameter(1, productid);
-					//get product from database
 					@SuppressWarnings("unchecked")
+					/**
+					 *get results of query 
+					 */
 					List<Products> plist = q1.getResultList();
-					//get results of query
+					/**
+					 *get product entity 
+					 */
 					Products itemofinterest = plist.get(0);
-					//get product entity
+					/**
+					 *get quantity from inventory 
+					 */
 					int invQuant = itemofinterest.getQuantity();
-					//get quantity from inventory
+					/**
+					 *calculate new quantity for inventory 
+					 */
 					int newInvQuant = invQuant+difference;
-					//calculate new quantity for inventory
+					/**
+					 * Check if new quantity would make inventory negative
+					 */
 					if(newInvQuant < 0) {
+						/**
+						 * error condition
+						 */
 						return "Quantity would set inventory negative. Select a lower value.";
 					}
+					/**
+					 *update query to set new inventory value 
+					 */
 					Query q2 = em.createQuery("UPDATE Products t SET t.quantity=?1 where t.product_id=?2").setParameter(1, newInvQuant).setParameter(2,productid);
-					//update query to set new inventory value
 					@SuppressWarnings("unused")
+					/**
+					 *run the update query 
+					 */
 					int rowcount = q2.executeUpdate();
-					//run the update query
+					/**
+					 *update quantity of item 
+					 */
 					item.setQuantity(quantity);
-					//update quantity of item
 				}
 			}
+			/**
+			 *set cart items now that list has been modified 
+			 */
 			newItem.setCartItems(oldList);
-			//set cart items now that list has been modified
+			/**
+			 *persist the new entity 
+			 */
 			em.persist(newItem);
-			//persist the new entity
+			/**
+			 *commit the transaction 
+			 */
 			em.getTransaction().commit();
-			//commit the transaction
+			/**
+			 *close the entity manager 
+			 */
 			em.close();
-			//close the entity manager
+			/**
+			 *log the updated item 
+			 */
 			logger.info("cart item with productid: "+productid+" updated to quantity: "+quantity+" for cartid: "+cartid);
-			//log the updated item
-			return "Cart Item Updated:<br>"+newItem.toString();
-			//return a string representation of the new cart
+			return "Cart Item Updated: "+newItem.toString();
 		}
 	}
 
-	public Object DeleteCart(int id) {
+	/**
+	 * Service method backing rest endpoint to delete cart
+	 * @param id cart id sent from rest endpoint
+	 * @return return the id of the deleted cart
+	 */
+	public String DeleteCart(int id) {
+		/**
+		 *instantiate the factory to get an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate the factory to get an entity manager
+		/**
+		 *create an entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create an entity manager
 		try {
-		Carts result =em.createQuery("select t from Carts t where t.cart_id = ?1", Carts.class).setParameter(1, id).getSingleResult();
-		//carts entity tohold cart for selected cartid
-		em.getTransaction().begin();
-		//begin transaction
-		em.remove(result);
-		//remove the item from the cart
-		em.getTransaction().commit();
-		//commit the transaction
-		em.close();
-		//close the entity manager
-		logger.info("cart with id: "+id+" deleted");
-		//log the deleted cart
-		}catch(Exception e) {
-			//error condition
+			/**
+			 *carts entity tohold cart for selected cartid 
+			 */
+			Carts result =em.createQuery("select t from Carts t where t.cart_id = ?1", Carts.class).setParameter(1, id).getSingleResult();
+			/**
+			 *begin transaction 
+			 */
+			em.getTransaction().begin();
+			/**
+			 *remove the item from the cart 
+			 */
+			em.remove(result);
+			/**
+			 *commit the transaction 
+			 */
+			em.getTransaction().commit();
+			/**
+			 *close the entity manager 
+			 */
+			em.close();
+			/**
+			 *log the deleted cart 
+			 */
+			logger.info("cart with id: "+id+" deleted");
+		}
+		/**
+		 * error condition
+		 */
+		catch(Exception e) {
+			/**
+			 *return error message for invalid id 
+			 */
 			return "There is no cart with id:"+id+"so cannot delete.<br>Please supply a valid id.<br>";
-			//return error message for invalid id
 		}
-		
 		return "deleted"+id;
-		//return the id of the deleted cart
 		}
+
+	public int getCartFromUserid(int userid) {
+		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+		EntityManager em = factory.createEntityManager();
+		Query q = em.createQuery("select t from Customers t where t.customer_id = ?1",Customers.class).setParameter(1, userid);
+		List<Customers> customerlist =  q.getResultList();
+		Customers mycustomer = customerlist.get(0);
+		Query q2 = em.createQuery("select t from Carts t where t.customer=?1",Carts.class).setParameter(1, mycustomer);
+		List<Carts> cartlist = q2.getResultList();
+		Carts mycart = cartlist.get(0);
+		int mycartid = mycart.getCart_id();
+		return mycartid;
+	}
+
+	public int getUseridFromCartid(int cartId) {
+		
+		/**
+		 *access database to lookup userid from cartid 
+		 */
+		int userid=-1;
+		/**
+	     *instantiate a factory to get an entity manager from 
+	     */
+		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+		/**
+		 * create an entity manager
+		 */
+	    EntityManager em = factory.createEntityManager();
+	    em.getTransaction().begin();
+	    Query q = em.createQuery("select t from Carts t where t.cart_id=?1",Carts.class).setParameter(1,cartId);
+	    @SuppressWarnings("unchecked")
+		List<Carts> list = q.getResultList();
+	    try {
+	    	userid = list.get(0).getCustomer().getCustomer_id();
+	    }catch(Exception e) {
+	    	userid=-1;
+	    }
+		return userid;
+	}
 }

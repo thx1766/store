@@ -1,5 +1,6 @@
 package resources;
 
+
 import java.util.List;
 
 import javax.ws.rs.FormParam;
@@ -10,75 +11,59 @@ import javax.ws.rs.core.Response;
 
 import model.Customers;
 import services.CustomersService;
-
+/**
+ * 
+ * @author nschaffner
+ *
+ */
 
 @Path("/customer")
 public class CustomersResource {
-	
+	/**
+	 *service for interacting with database 
+	 */
 	CustomersService service = new CustomersService();
-	//service for interacting with database
-	@POST
-	@Path("/add")
-	public String addCustomer(
-			@FormParam("firstName") String firstname,
-			//first name from form
-			@FormParam("lastName") String lastname,
-			//last name from form
-			@FormParam("email") String email,
-			//email address from form
-			@FormParam("gender") String gender,
-			//gender from form
-			@FormParam("username") String username
-			//username from form
-			){
+	
+	/**
+	 * add a customer
+	 * @param firstname
+	 * @param lastname
+	 * @param email
+	 * @param gender
+	 * @param username
+	 * @return
+	 */
+	public String addCustomerNonRest(String firstname, String lastname, String email, String gender, String username) {
 		return service.addCustomer(firstname,lastname,email,gender,username);
-		//return response from service call to add customer
-		
 	}
 	
-	@GET
-	@Path("/list")
-	public String listCustomers(){
-		List<Customers> mylist = service.listCustomers();
-		//list of customers from database supplied by service
-		String response="";
-		//string to hold response 
-		for(Customers table: mylist){
-			response+=table.getCustomer_id()+": "+table.getFirstname()+" "+table.getLastname()+"<BR>\n";
-			//for each usre list first and last name
-		}
-		response+="<BR><a href='/store/deleteCustomer.jsp'>Delete Customers</a>";
-		return response;
-		//return constructed response
+	
+	/**
+	 * list customers
+	 * @return
+	 */
+	public List<Customers> listCustomersNonRest(){
+		return service.listCustomers();
 	}
 	
-	@POST
-	@Path("/update")
-	public Response updateCustomer(
-			@FormParam("customerID") int id,
-			//customer id from form
-			@FormParam("firstName") String firstname,
-			//first name from form
-			@FormParam("lastName") String lastname
-			//last name from form
-			){
-		return Response.status(201).entity(service.UpdateCustomer(id,firstname,lastname)).build();
-		//return html response from service call to update customer
-		
+	
+	/**
+	 * update a customer
+	 * @param id
+	 * @param firstname
+	 * @param lastname
+	 * @return
+	 */
+	public String updateCustomerNonRest(int id, String firstname, String lastname) {
+		return service.UpdateCustomer(id,firstname,lastname);
 	}
 	
-	@POST
-	@Path("/delete")
-	public String deleteCustomer(
-			@FormParam("customerID") int id
-			//customer id from form
-			){
-		String retval="<html><body>";
-			retval+=service.DeleteCustomer(id);
-			retval+="<BR><a href='/store/listCustomers.jsp'>List Customers</a>";
-			retval+="</body></html>";
-		return retval;
-		//return html Response containing result of delete call on service
+	/**
+	 * delete a customer
+	 * @param id
+	 * @return
+	 */
+	public String deleteCustomerNonRest(int id) {
+		return service.DeleteCustomer(id);
 	}
-
 }

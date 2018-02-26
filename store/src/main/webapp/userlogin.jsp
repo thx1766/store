@@ -6,9 +6,7 @@
 <button type="submit" >submit</button>
 </form>
 <br>
-<form action="/store/">
-    <input type="submit" value="Main Menu" />
-</form>
+<input type="button" onclick="location.href='/store/administrators.jsp';" value="Admin Menu" />
 </body>
 
 </html>

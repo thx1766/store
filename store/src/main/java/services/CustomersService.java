@@ -6,137 +6,269 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.persistence.RollbackException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import model.Customers;
 
+/**
+ * 
+ * @author nschaffner
+ *
+ */
+
 public class CustomersService {
-	
+	/**
+	 *persistence unit name for connecting to the database 
+	 */
 	String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
-	//persistence unit name for connecting to the database
+	/**
+	 *factory for creating entity manager 
+	 */
     EntityManagerFactory factory;
-    //factory for creating entity manager
-    static Logger logger = LoggerFactory.getLogger(CustomersService.class);
-    //logger set to class for CustomersService method logging
+    /**
+     *logger set to class for CustomersService method logging 
+     */
+    static Logger logger = LoggerFactory.getLogger(CustomersService.class); 
     
-    
+    /**
+     * Service method backing rest endpoint to add a customer
+     * @param firstname
+     * @param lastname
+     * @param email
+     * @param gender
+     * @param username
+     * @return return success message with link to login
+     */
 	public String addCustomer(String firstname, String lastname, String email, String gender, String username) {
+		/**
+		 * factory to create entity manager
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//factory to create entity manager
+		/**
+		 *create entity manager 
+		 */
 	    EntityManager em = factory.createEntityManager();
-	    //create entity manager
+	    /**
+	     *begin transaction 
+	     */
 	    em.getTransaction().begin();
-	    //begin transaction
+	    /**
+	     *create new Customers entity 
+	     */
 	    Customers newCustomer = new Customers();
-	    //create new Customers entity
+	    /**
+	     *set first name of customer 
+	     */
 	    newCustomer.setFirstname(firstname);
-	    //set first name of customer
+	    /**
+	     *set last name of customer 
+	     */
 	    newCustomer.setLastname(lastname);
-	    //set last name of customer
+	    /**
+	     *set email of customer 
+	     */
 	    newCustomer.setEmail(email);
-	    //set email of customer
+	    /**
+	     *set gender of customer 
+	     */
 	    newCustomer.setGender(gender);
-	    //set gender of customer
+	    /**
+	     *set customer's username 
+	     */
 	    newCustomer.setUsername(username);
-	    //set customer's username
+	    /**
+	     *persist new customer to the database 
+	     */
 	    em.persist(newCustomer);
-	    //persist new customer to the database
+	    /**
+	     *commit transaction 
+	     */
 	    em.getTransaction().commit();
-	    //commit transaction
+	    /**
+	     *close entity manager 
+	     */
 	    em.close();
-	    //clsoe entity manager
+	    /**
+	     *log customer creation 
+	     */
 	    logger.info("customer "+username+" added");
-	    //log customer creation
-	return "<html><body>User "+username+" added sucessfully!<br><a href='/store/testlogin1.jsp'>Login</a></body></html>";
-	//return success message with link to login
+	return username+" added sucessfully!";
 	}
 
+	
 	@SuppressWarnings("unchecked")
+	/**
+	 * service backing rest method to list customers
+	 * @return return list of customer entities
+	 */
 	public List<Customers> listCustomers() {
+		/**
+		 *instantiate factory for entity manager creation 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate factory for entity manager creation
+		/**
+		 *create entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create entity manager
+		/**
+		 *query to select customers from Customers table 
+		 */
 		Query q = em.createQuery("select t from Customers t", Customers.class);
-		//query to select customers from Customers table
+		/**
+		 *create a list of customer from query result 
+		 */
 		List<Customers> todoList = q.getResultList();
-		//create a list of customer from query result
+		/**
+		 *close entity manager 
+		 */
 		em.close();
-		//close entity manager
+		/**
+		 *log that customer have been listed 
+		 */
 		logger.info("customers listed");
-		//log that customer have been listed
 		return todoList;
-		//return list of customer entities
 	}
 
-	public Object UpdateCustomer(int id, String first, String last) {
+	/**
+	 * service backing rest endpoint method to update customer
+	 * @param id
+	 * @param first
+	 * @param last
+	 * @return return string representation of updated customer
+	 */
+	public String UpdateCustomer(int id, String first, String last) {
+		/**
+		 *instantiate factory to get an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate factory to get an entity manager
+		/**
+		 *create entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create entity manager
+		/**
+		 *get a list of Customers entities from the database for the specified customer id 
+		 */
 		List<Customers> test = em.createQuery("select t from Customers t where t.customer_id = ?1", Customers.class).setParameter(1, id).getResultList();
-		//get a list of Customers entities from the database for the specified customer id
+		/**
+		 * error expected list size is 1
+		 */
 		if(test.size()!=1){
-			//error expected list size is 1
+			/**
+			 *close entity manager 
+			 */
 			em.close();
-			//close entity manager
+			/**
+			 *log the error 
+			 */
 			logger.error("error updating customer with customer id:"+id);
-			//log the error
+			/**
+			 * error condition
+			 */
 			return null;
-			//error condition
 		}
+		/**
+		 *list contains 1 Customers entity 
+		 */
 		else
 		{
-			//list contains 1 Customers entity
+			/**
+			 * begin transaction
+			 */
 			em.getTransaction().begin();
-			//begin transaction
+			/**
+			 *get Customer entity from list 
+			 */
 			Customers newCustomer = test.get(0);
-			//get Customer entity from list
+			/**
+			 *set updated first name 
+			 */
 			newCustomer.setFirstname(first);
-			//set updated first name
+			/**
+			 *set updated last name 
+			 */
 			newCustomer.setLastname(last);
-			//set updated last name
+			/**
+			 *persist the updated customer entity 
+			 */
 			em.persist(newCustomer);
-			//persist the updated customer entity
+			/**
+			 *commit the transaction 
+			 */
 			em.getTransaction().commit();
-			//commit the transaction
+			/**
+			 *close the entity manager 
+			 */
 			em.close();
-			//close the entity manager
+			/**
+			 *log the updated customer data 
+			 */
 			logger.info("customer id: "+id+" updated firstname: "+first+" lastname: "+last);
-			//log the updated customer data
 			return newCustomer.toString();
-			//return string representation of updated customer
 		}
 	}
 
-	public Object DeleteCustomer(int id) {
+	/**
+	 * service method backing rest endpoint to delete customer
+	 * @param id
+	 * @return return the id of the deleted customer
+	 */
+	public String DeleteCustomer(int id) {
+		/**
+		 *instantiate factory for creating an entity manager 
+		 */
 		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		//instantiate factory for creating an entity manager
+		/**
+		 *create an entity manager 
+		 */
 		EntityManager em = factory.createEntityManager();
-		//create an entity manager
 		try {
-		Customers result =em.createQuery("select t from Customers t where t.customer_id = ?1", Customers.class).setParameter(1, id).getSingleResult(); 
-		//create a Customers entity to find the customer in the database corresponding to the supplied customer id
-		em.getTransaction().begin();
-		//begin transaction
-		em.remove(result);
-		//remove the customer from the database
-		em.getTransaction().commit();
-		//commit the transaction
-		em.close();
-		//close the entity manager
-		logger.info("customer with id: "+id+" deleted");
-		//log that the customer of the specified id has been deleted
-		}catch(Exception e) {
-			//catch error condition for bad userid
-			return "Could not find customer with id:"+id+"<br>Please supply a valid user id<br><a href='/store/deleteCustomer.jsp'>Delete Customer</a>";
-			//return an error message
+			/**
+			 *create a Customers entity to find the customer in the database corresponding to the supplied customer id 
+			 */
+			Customers result =em.createQuery("select t from Customers t where t.customer_id = ?1", Customers.class).setParameter(1, id).getSingleResult(); 
+			/**
+			 *begin transaction 
+			 */
+			em.getTransaction().begin();
+			/**
+			 *remove the customer from the database 
+			 */
+			em.remove(result);
+			/**
+			 *commit the transaction 
+			 */
+			em.getTransaction().commit();
+			/**
+			 *close the entity manager 
+			 */
+			em.close();
+			/**
+			 *log that the customer of the specified id has been deleted 
+			 */
+			logger.info("customer with id: "+id+" deleted");
 		}
-		
+		/**
+		 * catch exception user has a cart still
+		 */
+		catch(RollbackException e) {
+			/**
+			 * return an error message
+			 */
+			return "You must delete this user's cart first<br><a href='/store/listCarts.jsp'>List Carts</a><br><a href='/store/deleteCart.jsp'>Delete Carts</a>";
+		}
+		/**
+		 * catch exception user does not exist
+		 */
+		catch(Exception e) {
+			/**
+			 * return an error message
+			 */
+			return "Could not find customer with id:"+id+" Please supply a valid user id!";
+		}
 		return "deleted"+id;
-		//return the id of the deleted customer
 	 }
 }
 

@@ -1,7 +1,8 @@
 <html>
 <body>
 <h1>Become a new user!</h1>
-<form enctype="application/x-www-form-urlencoded" method="POST" action="/store/webapi/customer/add">
+<form enctype="application/x-www-form-urlencoded" method="POST" action="/store/addCustomerRest.jsp">
+<!-- <form enctype="application/x-www-form-urlencoded" method="POST" action="/store/webapi/customer/add"> -->
 First Name:<input type="text" name="firstName" />
 <br>Last Name:<input type="text" name="lastName" />
 <br>Email Address:<input type="text" name="email">
@@ -14,13 +15,9 @@ First Name:<input type="text" name="firstName" />
 <button type="submit" >submit</button>
 </form>
 <br>
-<form action="/store/testlogin1.jsp">
-    <input type="submit" value="Login" />
-</form>
+<input type="button" onclick="location.href='/store/testlogin1.jsp';" value="Login" />
 <br>
-<form action="/store/administrators.jsp">
-    <input type="submit" value="Admin Menu" />
-</form>
+<input type="button" onclick="location.href='/store/administrators.jsp';" value="Admin Menu" />
 </body>
 
 </html>
