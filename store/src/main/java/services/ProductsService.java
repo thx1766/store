@@ -220,7 +220,7 @@ public class ProductsService {
 		
 		EntityManager em = factory.createEntityManager();
 		
-		List<Object[]> list = em.createQuery("Select c,ccp from Carts c, CustomerProducts cp where c.cart_id=cp.cart_id").getResultList();
+		List<Object[]> list = em.createQuery("select a, b from Carts a, CustomerProducts b, where a.cartItems=b.").getResultList();
 		String returnstring="";
 		for(Object o[]: list) {
 			Carts c = (Carts) o[0];
