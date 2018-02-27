@@ -214,22 +214,7 @@ public class ProductsService {
 	 * @param id
 	 * @return return the id of the deleted product
 	 */
-	public String deleteProductSQL(int id) {
-		
-		factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-		
-		EntityManager em = factory.createEntityManager();
-		
-		List<Object[]> list = em.createQuery("select a, b from Carts a, CustomerProducts b, where a.cartItems=b.").getResultList();
-		String returnstring="";
-		for(Object o[]: list) {
-			Carts c = (Carts) o[0];
-			CustomerProducts ccp =(CustomerProducts) o[1];
-			returnstring+="\n cart: "+c.toString()+"\n customerproducts "+ccp.toString();
-		}
-		return returnstring;
-		
-	}
+
 	public String deleteProduct(int id) {
 		/**
 		 *instantiate a factory to get an entity manager 
@@ -242,36 +227,41 @@ public class ProductsService {
 		/**
 		 *check all carts for product and remove item from carts to proceed 
 		 */
-		List<Carts> allcarts = em.createQuery("select t from Carts t",Carts.class).getResultList();
-		/**
-		 * for each cart
-		 */
-		for(Carts cartindex: allcarts) {
+		Query q = em.createNativeQuery("select eclipselinkschema.carts.CART_ID from eclipselinkschema.carts, eclipselinkschema.carts_customerproducts, eclipselinkschema.customerproducts where eclipselinkschema.carts.cart_id = eclipselinkschema.carts_customerproducts.Carts_CART_ID and eclipselinkschema.carts_customerproducts.cartItems_ITEM_ID=eclipselinkschema.customerproducts.ITEM_ID and eclipselinkschema.customerproducts.PRODUCT_ID = ?1");
+		q.setParameter(1,id);
+		List<Integer> cartList =q.getResultList();
+		for(Integer item: cartList) {
+			List<Carts> allcarts = em.createQuery("select t from Carts t where t.cart_id=?1",Carts.class).setParameter(1, item).getResultList();
 			/**
-			 * get products list
+			 * for each cart
 			 */
-			List<CustomerProducts> productlist=cartindex.getCartItems();
-			List<CustomerProducts> temp=new ArrayList<CustomerProducts>();
+			for(Carts cartindex: allcarts) {
 				/**
-				 * For each cart item
+				 * get products list
 				 */
-				for(CustomerProducts productindex: productlist) {
+				List<CustomerProducts> productlist=cartindex.getCartItems();
+				List<CustomerProducts> temp=new ArrayList<CustomerProducts>();
 					/**
-					 * customer cart item matches id of product to be deleted
+					 * For each cart item
 					 */
-					if(productindex.getProduct_id()==id) {
-						//add to remove list
-						temp.add(productindex);
+					for(CustomerProducts productindex: productlist) {
+						/**
+						 * customer cart item matches id of product to be deleted
+						 */
+						if(productindex.getProduct_id()==id) {
+							//add to remove list
+							temp.add(productindex);
+						}
 					}
-				}
-				/**
-				 * remove items found in search
-				 */
-				productlist.removeAll(temp);
-				/**
-				 *set list to new list missing targeted product 
-				 */
-				cartindex.setCartItems(productlist);
+					/**
+					 * remove items found in search
+					 */
+					productlist.removeAll(temp);
+					/**
+					 *set list to new list missing targeted product 
+					 */
+					cartindex.setCartItems(productlist);
+			}
 		}
 		/**
 		 *get the product with the specified id 

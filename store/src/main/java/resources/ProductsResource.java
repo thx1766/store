@@ -80,11 +80,5 @@ public class ProductsResource {
 		return service.deleteProduct(id);
 	}
 	
-	@Path("/deleteSQL")
-	@POST
-	public String deleteProductSQLNonRest(
-			@PathParam("id") int id
-			) {
-		return service.deleteProductSQL(id);
-	}
+	
 }
