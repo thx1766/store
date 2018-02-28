@@ -251,6 +251,10 @@ public class ProductsService {
 						if(productindex.getProduct_id()==id) {
 							//add to remove list
 							temp.add(productindex);
+							/**
+							 * email the user that the item has been deleted from the cart
+							 */
+							emailUserCartItemDeleted(productindex,cartindex);
 						}
 					}
 					/**
@@ -288,7 +292,12 @@ public class ProductsService {
 		 */
 		logger.info("product with product id: "+id+" deleted");
 		return "deleted"+id;
+	}private void emailUserCartItemDeleted(CustomerProducts productindex, Carts carti) {
+		logger.info("emailing user: "+carti.getCustomer().getEmail()+" that item "+productindex.getProductName()+" was removed from cart ");
+		
 	}
+
+
 
 	public int getCartFromUserid(int userid) {
 		String PERSISTENCE_UNIT_NAME = "eclipselinkschema";
